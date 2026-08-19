@@ -198,17 +198,34 @@ async function generateAddress() {
     addressText.textContent = '住所を検索中...';
     coordsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
-    const res = await fetch(`https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}`);
-    const data = await res.json();
+    // 通信エラーを避けるためCORSプロキシ経由で国土地理院APIを取得
+    const apiUrl = `https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+    
+    const res = await fetch(proxyUrl);
+    const proxyData = await res.json();
+    const data = JSON.parse(proxyData.contents);
 
     if (data && data.addressBack) {
       const addr = data.addressBack;
       addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
     } else {
-      addressText.textContent = '住所を取得できませんでした（海の上など）';
+      addressText.textContent = '住所を取得できませんでした（海の上または該当データなし）';
     }
   } catch (e) {
-    addressText.textContent = '取得エラーが発生しました。位置情報の許可などを確認してください。';
+    // 万が一プロキシ側でエラーが出た場合の直接フォールバック
+    try {
+      const { lat, lon } = getRandomCoords(baseLat, baseLon, radius);
+      const directRes = await fetch(`https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}`);
+      const directData = await directRes.json();
+      if (directData && directData.addressBack) {
+        const addr = directData.addressBack;
+        addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
+        return;
+      }
+    } catch(err) {}
+    
+    addressText.textContent = '取得エラーが発生しました。もう一度「住所を生成する」を押してみてください。';
   }
 }
 </script>
