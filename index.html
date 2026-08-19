@@ -28,19 +28,24 @@
       width: 100%; max-width: 480px;
     }
     h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--primary-color); }
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 20px; }
     label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #475569; }
-    select, input {
+    select {
       width: 100%; padding: 12px; font-size: 1rem; border: 1px solid var(--border-color);
       border-radius: 8px; background-color: #fff; outline: none; transition: border-color 0.2s;
     }
-    select:focus, input:focus { border-color: var(--primary-color); }
+    select:focus { border-color: var(--primary-color); }
     .btn {
       width: 100%; padding: 14px; font-size: 1rem; font-weight: 600; color: #fff;
       background-color: var(--primary-color); border: none; border-radius: 8px;
-      cursor: pointer; transition: background-color 0.2s; margin-top: 8px;
+      cursor: pointer; transition: background-color 0.2s;
     }
     .btn:active { background-color: var(--primary-hover); }
+    .btn-map {
+      display: block; width: 100%; padding: 10px; margin-top: 12px;
+      text-align: center; background-color: #059669; color: #fff;
+      text-decoration: none; font-weight: 600; border-radius: 8px; font-size: 0.9rem;
+    }
     .result-box {
       margin-top: 20px; padding: 16px; background-color: #f1f5f9;
       border-radius: 8px; font-size: 0.95rem; line-height: 1.6; word-break: break-all;
@@ -63,11 +68,6 @@
     </select>
   </div>
 
-  <div class="form-group">
-    <label for="radiusInput">中心からの検索半径 (km)</label>
-    <input type="number" id="radiusInput" value="5" min="0.5" max="50" step="0.5">
-  </div>
-
   <button class="btn" onclick="generateAddress()">住所を生成する</button>
 
   <div class="result-box" id="result" style="display: none;">
@@ -79,6 +79,7 @@
       <div class="result-label">緯度・経度</div>
       <div id="coordsText">-</div>
     </div>
+    <a id="mapLink" href="#" target="_blank" class="btn-map" style="display: none;">📍 Googleマップで開く</a>
   </div>
 </div>
 
@@ -144,7 +145,7 @@ PREFECTURES.forEach((p, idx) => {
 function getCurrentLocation() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("お使いの端末は位置情報に対応していません。"));
+      reject(new Error("端末が位置情報に対応していません。"));
     }
     navigator.geolocation.getCurrentPosition(
       pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
@@ -164,31 +165,41 @@ function getRandomCoords(lat, lon, radiusKm) {
   return { lat: newLat, lon: newLon };
 }
 
-// JSONP受信用グローバルコールバック関数
+let currentLat = 0;
+let currentLon = 0;
+
 window.gsiCallback = function(data) {
   const addressText = document.getElementById('addressText');
+  const mapLink = document.getElementById('mapLink');
+  
   if (data && data.addressBack) {
     const addr = data.addressBack;
     addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
+    
+    // Googleマップリンクの生成
+    mapLink.href = `https://www.google.com/maps?q=${currentLat},${currentLon}`;
+    mapLink.style.display = 'block';
   } else {
     addressText.textContent = '住所を取得できませんでした（海の上または該当データなし）';
+    mapLink.style.display = 'none';
   }
-  // 使用済みのscriptタグを削除
   const oldScript = document.getElementById('gsi-script');
   if (oldScript) oldScript.remove();
 };
 
 async function generateAddress() {
   const selectVal = selectEl.value;
-  const radius = parseFloat(document.getElementById('radiusInput').value) || 5;
+  const radius = 5;
 
   const resultBox = document.getElementById('result');
   const addressText = document.getElementById('addressText');
   const coordsText = document.getElementById('coordsText');
+  const mapLink = document.getElementById('mapLink');
 
   resultBox.style.display = 'block';
   addressText.textContent = '処理中...';
   coordsText.textContent = '-';
+  mapLink.style.display = 'none';
 
   let baseLat, baseLon;
 
@@ -209,14 +220,15 @@ async function generateAddress() {
     }
 
     const { lat, lon } = getRandomCoords(baseLat, baseLon, radius);
+    currentLat = lat;
+    currentLon = lon;
+
     addressText.textContent = '住所を検索中...';
     coordsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
-    // 古いスクリプトがあれば除去
     const oldScript = document.getElementById('gsi-script');
     if (oldScript) oldScript.remove();
 
-    // JSONP方式で通信（ブラウザの通信制限を無効化）
     const script = document.createElement('script');
     script.id = 'gsi-script';
     script.src = `https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}&callback=gsiCallback`;
