@@ -1,324 +1,215 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>実在住所ランダムジェネレーター（距離指定・マップ表示版）</title>
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-        }
-        body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-        .container {
-            background: var(--card-bg);
-            max-width: 500px;
-            width: 100%;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        h1 {
-            font-size: 20px;
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 24px;
-            color: #0f172a;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #475569;
-        }
-        select {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background-color: #fff;
-            color: var(--text-color);
-            outline: none;
-            box-sizing: border-box;
-        }
-        select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        button {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 8px;
-        }
-        button:hover {
-            background-color: var(--primary-hover);
-        }
-        .result-box {
-            margin-top: 24px;
-            padding: 20px;
-            background-color: #f1f5f9;
-            border-radius: 12px;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-        }
-        .zipcode {
-            font-size: 16px;
-            color: #64748b;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .address {
-            font-size: 20px;
-            font-weight: bold;
-            color: #0f172a;
-            word-break: break-all;
-        }
-        .distance-info {
-            font-size: 13px;
-            color: #059669;
-            margin-top: 8px;
-            font-weight: 500;
-        }
-        .action-btns {
-            margin-top: 16px;
-            display: flex;
-            gap: 8px;
-            width: 100%;
-            justify-content: center;
-        }
-        .action-btn {
-            font-size: 13px;
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-copy {
-            background-color: #64748b;
-            color: white;
-        }
-        .btn-map {
-            background-color: #10b981;
-            color: white;
-        }
-        .map-frame {
-            width: 100%;
-            height: 200px;
-            border: none;
-            border-radius: 8px;
-            margin-top: 16px;
-        }
-        .error-message {
-            color: #dc2626;
-            font-weight: 500;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>実在住所ランダムジェネレーター（現在地対応）</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --border-color: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      min-height: 100vh; padding: 20px 16px;
+    }
+    .container {
+      background-color: var(--card-bg);
+      padding: 24px; border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
+      width: 100%; max-width: 480px;
+    }
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--primary-color); }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #475569; }
+    select, input {
+      width: 100%; padding: 12px; font-size: 1rem; border: 1px solid var(--border-color);
+      border-radius: 8px; background-color: #fff; outline: none; transition: border-color 0.2s;
+    }
+    select:focus, input:focus { border-color: var(--primary-color); }
+    .btn {
+      width: 100%; padding: 14px; font-size: 1rem; font-weight: 600; color: #fff;
+      background-color: var(--primary-color); border: none; border-radius: 8px;
+      cursor: pointer; transition: background-color 0.2s; margin-top: 8px;
+    }
+    .btn:active { background-color: var(--primary-hover); }
+    .result-box {
+      margin-top: 20px; padding: 16px; background-color: #f1f5f9;
+      border-radius: 8px; font-size: 0.95rem; line-height: 1.6; word-break: break-all;
+    }
+    .result-item { margin-bottom: 8px; }
+    .result-item:last-child { margin-bottom: 0; }
+    .result-label { font-weight: 600; color: #64748b; font-size: 0.8rem; }
+  </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>住所ランダムジェネレーター</h1>
-    
-    <!-- 絞り込み条件 -->
-    <div class="form-group">
-        <label for="prefSelect">都道府県の絞り込み</label>
-        <select id="prefSelect">
-            <option value="all">すべての都道府県</option>
-            <option value="北海道">北海道</option>
-            <option value="東京都">東京都</option>
-            <option value="京都府">京都府</option>
-            <option value="大阪府">大阪府</option>
-            <option value="福岡県">福岡県</option>
-        </select>
-    </div>
+  <h1>実在住所ジェネレーター</h1>
 
-    <div class="form-group">
-        <label for="baseSelect">基準にする場所</label>
-        <select id="baseSelect">
-            <option value="tokyo">東京駅</option>
-            <option value="osaka">大阪駅</option>
-            <option value="sapporo">札幌駅</option>
-            <option value="hakata">博多駅</option>
-        </select>
-    </div>
+  <div class="form-group">
+    <label for="prefSelect">基準の場所を選択</label>
+    <select id="prefSelect">
+      <option value="CURRENT">📍 現在地を中心にする</option>
+      <option value="ALL">全国（ランダム）</option>
+    </select>
+  </div>
 
-    <div class="form-group">
-        <label for="radiusSelect">基準からの距離制限</label>
-        <select id="radiusSelect">
-            <option value="99999">制限なし</option>
-            <option value="5">5 km 以内</option>
-            <option value="20">20 km 以内</option>
-            <option value="50">50 km 以内</option>
-            <option value="100">100 km 以内</option>
-        </select>
-    </div>
+  <div class="form-group">
+    <label for="radiusInput">中心からの検索半径 (km)</label>
+    <input type="number" id="radiusInput" value="5" min="0.5" max="50" step="0.5">
+  </div>
 
-    <button onclick="generateAddress()">住所をランダム生成</button>
+  <button class="btn" onclick="generateAddress()">住所を生成する</button>
 
-    <!-- 結果表示エリア -->
-    <div class="result-box">
-        <div id="resultContent" style="width: 100%;">
-            <div class="address" style="color: #64748b; font-size: 16px;">条件を設定してボタンを押してください</div>
-        </div>
+  <div class="result-box" id="result" style="display: none;">
+    <div class="result-item">
+      <div class="result-label">生成された住所</div>
+      <div id="addressText" style="font-weight: 600; font-size: 1.1rem; color: #0f172a;">-</div>
     </div>
+    <div class="result-item" style="margin-top: 12px;">
+      <div class="result-label">緯度・経度</div>
+      <div id="coordsText">-</div>
+    </div>
+  </div>
 </div>
 
 <script>
-    // 基準地点の緯度・経度データ
-    const baseLocations = {
-        tokyo:   { name: "東京駅", lat: 35.681236, lng: 139.767125 },
-        osaka:   { name: "大阪駅", lat: 34.702485, lng: 135.495951 },
-        sapporo: { name: "札幌駅", lat: 43.068564, lng: 141.350713 },
-        hakata:  { name: "博多駅", lat: 33.589729, lng: 130.420750 }
-    };
+const PREFECTURES = [
+  { name: "北海道", lat: 43.06417, lon: 141.34694 },
+  { name: "青森県", lat: 40.82444, lon: 140.74000 },
+  { name: "岩手県", lat: 39.70361, lon: 141.15250 },
+  { name: "宮城県", lat: 38.26889, lon: 140.87194 },
+  { name: "秋田県", lat: 39.71861, lon: 140.10250 },
+  { name: "山形県", lat: 38.24056, lon: 140.36333 },
+  { name: "福島県", lat: 37.75000, lon: 140.46778 },
+  { name: "茨城県", lat: 36.34139, lon: 140.44667 },
+  { name: "栃木県", lat: 36.56583, lon: 139.88361 },
+  { name: "群馬県", lat: 36.39111, lon: 139.06083 },
+  { name: "埼玉県", lat: 35.85694, lon: 139.64889 },
+  { name: "千葉県", lat: 35.60472, lon: 140.12333 },
+  { name: "東京都", lat: 35.68944, lon: 139.69167 },
+  { name: "神奈川県", lat: 35.44778, lon: 139.64250 },
+  { name: "新潟県", lat: 37.90222, lon: 139.02361 },
+  { name: "富山県", lat: 36.69528, lon: 137.21139 },
+  { name: "石川県", lat: 36.59444, lon: 136.62556 },
+  { name: "福井県", lat: 36.06528, lon: 136.22194 },
+  { name: "山梨県", lat: 35.66389, lon: 138.56833 },
+  { name: "長野県", lat: 36.65139, lon: 138.18111 },
+  { name: "岐阜県", lat: 35.39111, lon: 136.72222 },
+  { name: "静岡県", lat: 34.97694, lon: 138.38306 },
+  { name: "愛知県", lat: 35.18028, lon: 136.90667 },
+  { name: "三重県", lat: 34.73028, lon: 136.50861 },
+  { name: "滋賀県", lat: 35.00444, lon: 135.86833 },
+  { name: "京都府", lat: 35.02139, lon: 135.75556 },
+  { name: "大阪府", lat: 34.68639, lon: 135.52000 },
+  { name: "兵庫県", lat: 34.69139, lon: 135.18306 },
+  { name: "奈良県", lat: 34.68528, lon: 135.83278 },
+  { name: "和歌山県", lat: 34.22611, lon: 135.16750 },
+  { name: "鳥取県", lat: 35.50361, lon: 134.23833 },
+  { name: "島根県", lat: 35.47222, lon: 133.05056 },
+  { name: "岡山県", lat: 34.66167, lon: 133.93500 },
+  { name: "広島県", lat: 34.39639, lon: 132.45944 },
+  { name: "山口県", lat: 34.18583, lon: 131.47139 },
+  { name: "徳島県", lat: 34.06583, lon: 134.55944 },
+  { name: "香川県", lat: 34.34028, lon: 134.04333 },
+  { name: "愛媛県", lat: 33.84167, lon: 132.76611 },
+  { name: "高知県", lat: 33.55972, lon: 133.53111 },
+  { name: "福岡県", lat: 33.60639, lon: 130.41806 },
+  { name: "佐賀県", lat: 33.24944, lon: 130.29889 },
+  { name: "長崎県", lat: 32.74472, lon: 129.87361 },
+  { name: "熊本県", lat: 32.78972, lon: 130.74167 },
+  { name: "大分県", lat: 33.23806, lon: 131.61250 },
+  { name: "宮崎県", lat: 31.91111, lon: 131.42389 },
+  { name: "鹿児島県", lat: 31.56028, lon: 130.55806 },
+  { name: "沖縄県", lat: 26.21250, lon: 127.68111 }
+];
 
-    // 実在する住所のマスターデータ（郵便番号・住所・緯度・経度）
-    const addressDatabase = [
-        // 北海道
-        { pref: "北海道", zip: "060-0001", addr: "札幌市中央区北一条西", lat: 43.062099, lng: 141.354376 },
-        { pref: "北海道", zip: "064-0951", addr: "札幌市中央区宮の森一条", lat: 43.055272, lng: 141.303977 },
-        { pref: "北海道", zip: "040-0063", addr: "函館市若松町", lat: 41.773719, lng: 140.726413 },
-        // 東京都
-        { pref: "東京都", zip: "100-0005", addr: "千代田区丸の内", lat: 35.681382, lng: 139.766084 },
-        { pref: "東京都", zip: "150-0043", addr: "渋谷区道玄坂", lat: 35.659357, lng: 139.697521 },
-        { pref: "東京都", zip: "160-0022", addr: "新宿区新宿", lat: 35.693843, lng: 139.703549 },
-        { pref: "東京都", zip: "104-0061", addr: "中央区銀座", lat: 35.671454, lng: 139.765472 },
-        { pref: "東京都", zip: "190-0012", addr: "立川市曙町", lat: 35.701556, lng: 139.414028 },
-        // 京都府
-        { pref: "京都府", zip: "600-8216", addr: "京都市下京区東塩小路町", lat: 34.985856, lng: 135.758924 },
-        { pref: "京都府", zip: "604-8031", addr: "京都市中京区大黒町", lat: 35.008917, lng: 135.769583 },
-        // 大阪府
-        { pref: "大阪府", zip: "530-0011", addr: "大阪市北区大深町", lat: 34.704255, lng: 135.494772 },
-        { pref: "大阪府", zip: "542-0085", addr: "大阪市中央区心斎橋筋", lat: 34.671911, lng: 135.501476 },
-        { pref: "大阪府", zip: "542-0076", addr: "大阪市中央区難波", lat: 34.666994, lng: 135.501538 },
-        { pref: "大阪府", zip: "590-0077", addr: "堺市堺区中瓦町", lat: 34.573516, lng: 135.483015 },
-        // 福岡県
-        { pref: "福岡県", zip: "812-0012", addr: "福岡市博多区博多駅中央街", lat: 33.589729, lng: 130.420750 },
-        { pref: "福岡県", zip: "810-0001", addr: "福岡市中央区天神", lat: 33.590025, lng: 130.401752 },
-        { pref: "福岡県", zip: "802-0006", addr: "北九州市小倉北区魚町", lat: 33.882963, lng: 130.881261 }
-    ];
+const selectEl = document.getElementById('prefSelect');
+PREFECTURES.forEach((p, idx) => {
+  const opt = document.createElement('option');
+  opt.value = idx;
+  opt.textContent = p.name;
+  selectEl.appendChild(opt);
+});
 
-    // 2点間の直線距離（km）を計算する関数（ヒュベニの公式）
-    function calculateDistance(lat1, lng1, lat2, lng2) {
-        const radLat1 = lat1 * Math.PI / 180;
-        const radLng1 = lng1 * Math.PI / 180;
-        const radLat2 = lat2 * Math.PI / 180;
-        const radLng2 = lng2 * Math.PI / 180;
+function getCurrentLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("お使いの端末は位置情報に対応していません。"));
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      err => reject(err),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+}
 
-        const r = 6378137; // 赤道半径
-        const e2 = 0.006694379990197589; // 第一離心率の2乗
+function getRandomCoords(lat, lon, radiusKm) {
+  const r = radiusKm * Math.sqrt(Math.random());
+  const theta = Math.random() * 2 * Math.PI;
+  const dy = r * Math.sin(theta);
+  const dx = r * Math.cos(theta);
+  const newLat = lat + (dy / 111);
+  const newLon = lon + (dx / (111 * Math.cos(lat * Math.PI / 180)));
+  return { lat: newLat, lon: newLon };
+}
 
-        const dLat = radLat1 - radLat2;
-        const dLng = radLng1 - radLng2;
-        const latAve = (radLat1 + radLat2) / 2;
+async function generateAddress() {
+  const selectVal = selectEl.value;
+  const radius = parseFloat(document.getElementById('radiusInput').value) || 5;
 
-        const w = Math.sqrt(1 - e2 * Math.sin(latAve) * Math.sin(latAve));
-        const m = r * (1 - e2) / (w * w * w); // 子午線曲率半径
-        const n = r / w; // 卯酉線曲率半径
+  const resultBox = document.getElementById('result');
+  const addressText = document.getElementById('addressText');
+  const coordsText = document.getElementById('coordsText');
 
-        const distance = Math.sqrt((dLat * m) * (dLat * m) + (dLng * n * Math.cos(latAve)) * (dLng * n * Math.cos(latAve)));
-        return distance / 1000;
+  resultBox.style.display = 'block';
+  addressText.textContent = '位置情報を取得中...';
+  coordsText.textContent = '-';
+
+  let baseLat, baseLon;
+
+  try {
+    if (selectVal === "CURRENT") {
+      const pos = await getCurrentLocation();
+      baseLat = pos.lat;
+      baseLon = pos.lon;
+    } else if (selectVal === "ALL") {
+      const basePref = PREFECTURES[Math.floor(Math.random() * PREFECTURES.length)];
+      baseLat = basePref.lat;
+      baseLon = basePref.lon;
+    } else {
+      const basePref = PREFECTURES[parseInt(selectVal)];
+      baseLat = basePref.lat;
+      baseLon = basePref.lon;
     }
 
-    function generateAddress() {
-        const selectedPref = document.getElementById("prefSelect").value;
-        const selectedBaseKey = document.getElementById("baseSelect").value;
-        const maxRadius = parseFloat(document.getElementById("radiusSelect").value);
+    const { lat, lon } = getRandomCoords(baseLat, baseLon, radius);
+    addressText.textContent = '住所を検索中...';
+    coordsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
-        const base = baseLocations[selectedBaseKey];
-        
-        // 条件に合う住所をフィルタリング
-        const filteredAddresses = addressDatabase.filter(item => {
-            if (selectedPref !== "all" && item.pref !== selectedPref) {
-                return false;
-            }
-            const dist = calculateDistance(base.lat, base.lng, item.lat, item.lng);
-            item.currentDistance = dist;
-            return dist <= maxRadius;
-        });
+    const res = await fetch(`https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}`);
+    const data = await res.json();
 
-        const container = document.getElementById("resultContent");
-
-        if (filteredAddresses.length === 0) {
-            container.innerHTML = `<div class="error-message">条件に合う住所がデータ内に見つかりませんでした。<br>条件を広げてみてください。</div>`;
-            return;
-        }
-
-        // 該当の住所をランダム取得
-        const result = filteredAddresses[Math.floor(Math.random() * filteredAddresses.length)];
-        const fullAddress = `${result.pref}${result.addr}`;
-
-        // 外部のGoogle Mapで検索を開くURL
-        const googleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
-
-        // 簡易地図の埋め込み用URL (OpenStreetMap枠)
-        const bboxOffset = 0.005; // 画面範囲の調整
-        const embedMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${result.lng - bboxOffset}%2C${result.lat - bboxOffset}%2C${result.lng + bboxOffset}%2C${result.lat + bboxOffset}&layer=mapnik&marker=${result.lat}%2C${result.lng}`;
-
-        // 結果の描画
-        container.innerHTML = `
-            <div class="zipcode">〒${result.zip}</div>
-            <div class="address">${fullAddress}</div>
-            <div class="distance-info">${base.name} からの直線距離: 約 ${result.currentDistance.toFixed(1)} km</div>
-            
-            <div class="action-btns">
-                <button class="action-btn btn-copy" onclick="copyAddress('〒${result.zip} ${fullAddress}')">コピー</button>
-                <a class="action-btn btn-map" href="${googleMapUrl}" target="_blank" rel="noopener noreferrer">Google Mapで開く</a>
-            </div>
-
-            <!-- 簡易地図エリア -->
-            <iframe class="map-frame" src="${embedMapUrl}"></iframe>
-        `;
+    if (data && data.addressBack) {
+      const addr = data.addressBack;
+      addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
+    } else {
+      addressText.textContent = '住所を取得できませんでした（海の上など）';
     }
-
-    // クリップボードへコピーする関数
-    function copyAddress(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert("住所をコピーしました！");
-        }).catch(err => {
-            console.error("コピーできませんでした:", err);
-        });
-    }
+  } catch (e) {
+    addressText.textContent = '位置情報の許可がないか、取得エラーが発生しました。';
+  }
+}
 </script>
-
 </body>
 </html>
