@@ -27,22 +27,12 @@
       text-align: center;
       margin-bottom: 16px;
     }
-    .postal-code {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #222;
-    }
-    .kana-text {
-      font-size: 0.8rem;
-      color: #666;
-      margin: 4px 0;
-      letter-spacing: 0.05em;
-    }
     .main-address {
       font-size: 1.5rem;
       font-weight: bold;
       color: #111;
       margin-bottom: 12px;
+      line-height: 1.3;
     }
 
     .map-container {
@@ -106,8 +96,6 @@
 
   <div id="resultArea" style="display: none;">
     <div class="address-card">
-      <div class="postal-code" id="postalCode">〒---</div>
-      <div class="kana-text" id="kanaText">-</div>
       <div class="main-address" id="addressText">-</div>
     </div>
 
@@ -200,45 +188,17 @@ let currentLon = 0;
 
 window.gsiCallback = function(data) {
   const addressText = document.getElementById('addressText');
-  const postalCode = document.getElementById('postalCode');
-  const kanaText = document.getElementById('kanaText');
   const mapLink = document.getElementById('mapLink');
   const gmapIframe = document.getElementById('gmapIframe');
 
   if (data && data.addressBack) {
     const addr = data.addressBack;
-    const fullAddress = `${addr.address1 || ''}${addr.address2 || ''}`;
-    addressText.textContent = fullAddress;
+    addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
 
-    // 地図のセット
     mapLink.href = `https://www.google.com/maps?q=${currentLat},${currentLon}`;
     gmapIframe.src = `https://maps.google.com/maps?q=${currentLat},${currentLon}&z=14&output=embed`;
-
-    // 郵便番号とフリガナを取得(HeartRails API)
-    fetchHeartRails(currentLat, currentLon);
   } else {
     addressText.textContent = '住所を取得できませんでした';
-    postalCode.textContent = '〒---';
-    kanaText.textContent = '-';
-  }
-};
-
-function fetchHeartRails(lat, lon) {
-  const script = document.createElement('script');
-  script.src = `https://express.heartrails.com/api/jsonp?method=getStations&x=${lon}&y=${lat}&callback=heartRailsCallback`;
-  document.body.appendChild(script);
-}
-
-window.heartRailsCallback = function(data) {
-  const postalCode = document.getElementById('postalCode');
-  const kanaText = document.getElementById('kanaText');
-  if (data && data.response && data.response.station && data.response.station.length > 0) {
-    const st = data.response.station[0];
-    postalCode.textContent = st.postal ? `〒${st.postal.slice(0,3)}-${st.postal.slice(3)}` : '〒---';
-    kanaText.textContent = st.line ? `${st.prefecture} ${st.line}` : '';
-  } else {
-    postalCode.textContent = '〒---';
-    kanaText.textContent = '';
   }
 };
 
