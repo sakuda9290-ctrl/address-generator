@@ -3,134 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>実在住所ランダムジェネレーター</title>
+  <title>全国の住所をランダムに選ぶ</title>
   <style>
     :root {
-      --primary-color: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-color: #1e293b;
-      --border-color: #e2e8f0;
+      --primary-color: #006699;
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --border-color: #cccccc;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      min-height: 100vh; padding: 20px 16px;
+      padding: 20px 16px;
+      max-width: 500px;
+      margin: 0 auto;
     }
-    .container {
-      background-color: var(--card-bg);
-      padding: 24px; border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01);
-      width: 100%; max-width: 480px;
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; color: #222; }
+    .sub-text { font-size: 0.85rem; color: #666; margin-bottom: 24px; line-height: 1.4; }
+    
+    .address-card {
+      text-align: center;
+      margin-bottom: 16px;
     }
-    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--primary-color); }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #475569; }
+    .postal-code {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #222;
+    }
+    .kana-text {
+      font-size: 0.8rem;
+      color: #666;
+      margin: 4px 0;
+      letter-spacing: 0.05em;
+    }
+    .main-address {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 12px;
+    }
+
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      background-color: #e5e3df;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .map-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #ffffff;
+      color: #0066cc;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-exec {
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .btn-exec:active { background-color: #004466; }
+
+    .form-group { margin-top: 10px; }
+    label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #444; }
     select {
-      width: 100%; padding: 12px; font-size: 1rem; border: 1px solid var(--border-color);
-      border-radius: 8px; background-color: #fff; outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 10px; font-size: 1rem; border: 1px solid var(--border-color);
+      border-radius: 4px; background-color: #fff; outline: none;
     }
-    select:focus { border-color: var(--primary-color); }
-    .btn {
-      width: 100%; padding: 14px; font-size: 1rem; font-weight: 600; color: #fff;
-      background-color: var(--primary-color); border: none; border-radius: 8px;
-      cursor: pointer; transition: background-color 0.2s;
-    }
-    .btn:active { background-color: var(--primary-hover); }
-    .btn-map {
-      display: block; width: 100%; padding: 10px; margin-top: 12px;
-      text-align: center; background-color: #059669; color: #fff;
-      text-decoration: none; font-weight: 600; border-radius: 8px; font-size: 0.9rem;
-    }
-    .result-box {
-      margin-top: 20px; padding: 16px; background-color: #f1f5f9;
-      border-radius: 8px; font-size: 0.95rem; line-height: 1.6; word-break: break-all;
-    }
-    .result-item { margin-bottom: 8px; }
-    .result-item:last-child { margin-bottom: 0; }
-    .result-label { font-weight: 600; color: #64748b; font-size: 0.8rem; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>実在住所ジェネレーター</h1>
+  <h1>全国の住所をランダムに選ぶ</h1>
+  <p class="sub-text">全国の住所をランダムに一つ選び出します。</p>
+
+  <div id="resultArea" style="display: none;">
+    <div class="address-card">
+      <div class="postal-code" id="postalCode">〒---</div>
+      <div class="kana-text" id="kanaText">-</div>
+      <div class="main-address" id="addressText">-</div>
+    </div>
+
+    <div class="map-container" id="mapContainer">
+      <a id="mapLink" href="#" target="_blank" class="map-btn">マップで開く ↗</a>
+      <iframe id="gmapIframe" src="" loading="lazy"></iframe>
+    </div>
+  </div>
+
+  <button class="btn-exec" onclick="generateAddress()">実行</button>
 
   <div class="form-group">
-    <label for="prefSelect">地域を選択</label>
+    <label for="prefSelect">都道府県・地方</label>
     <select id="prefSelect">
-      <option value="ALL">全国（ランダム）</option>
+      <option value="ALL">すべて（全国）</option>
     </select>
   </div>
 
-  <button class="btn" onclick="generateAddress()">住所を生成する</button>
-
-  <div class="result-box" id="result" style="display: none;">
-    <div class="result-item">
-      <div class="result-label">生成された住所</div>
-      <div id="addressText" style="font-weight: 600; font-size: 1.1rem; color: #0f172a;">-</div>
-    </div>
-    <div class="result-item" style="margin-top: 12px;">
-      <div class="result-label">緯度・経度</div>
-      <div id="coordsText">-</div>
-    </div>
-    <a id="mapLink" href="#" target="_blank" class="btn-map" style="display: none;">📍 Googleマップで開く</a>
-  </div>
-</div>
-
 <script>
 const PREFECTURES = [
-  { name: "北海道", lat: 43.06417, lon: 141.34694 },
-  { name: "青森県", lat: 40.82444, lon: 140.74000 },
-  { name: "岩手県", lat: 39.70361, lon: 141.15250 },
-  { name: "宮城県", lat: 38.26889, lon: 140.87194 },
-  { name: "秋田県", lat: 39.71861, lon: 140.10250 },
-  { name: "山形県", lat: 38.24056, lon: 140.36333 },
-  { name: "福島県", lat: 37.75000, lon: 140.46778 },
-  { name: "茨城県", lat: 36.34139, lon: 140.44667 },
-  { name: "栃木県", lat: 36.56583, lon: 139.88361 },
-  { name: "群馬県", lat: 36.39111, lon: 139.06083 },
-  { name: "埼玉県", lat: 35.85694, lon: 139.64889 },
-  { name: "千葉県", lat: 35.60472, lon: 140.12333 },
-  { name: "東京都", lat: 35.68944, lon: 139.69167 },
-  { name: "神奈川県", lat: 35.44778, lon: 139.64250 },
-  { name: "新潟県", lat: 37.90222, lon: 139.02361 },
-  { name: "富山県", lat: 36.69528, lon: 137.21139 },
-  { name: "石川県", lat: 36.59444, lon: 136.62556 },
-  { name: "福井県", lat: 36.06528, lon: 136.22194 },
-  { name: "山梨県", lat: 35.66389, lon: 138.56833 },
-  { name: "長野県", lat: 36.65139, lon: 138.18111 },
-  { name: "岐阜県", lat: 35.39111, lon: 136.72222 },
-  { name: "静岡県", lat: 34.97694, lon: 138.38306 },
-  { name: "愛知県", lat: 35.18028, lon: 136.90667 },
-  { name: "三重県", lat: 34.73028, lon: 136.50861 },
-  { name: "滋賀県", lat: 35.00444, lon: 135.86833 },
-  { name: "京都府", lat: 35.02139, lon: 135.75556 },
-  { name: "大阪府", lat: 34.68639, lon: 135.52000 },
-  { name: "兵庫県", lat: 34.69139, lon: 135.18306 },
-  { name: "奈良県", lat: 34.68528, lon: 135.83278 },
-  { name: "和歌山県", lat: 34.22611, lon: 135.16750 },
-  { name: "鳥取県", lat: 35.50361, lon: 134.23833 },
-  { name: "島根県", lat: 35.47222, lon: 133.05056 },
-  { name: "岡山県", lat: 34.66167, lon: 133.93500 },
-  { name: "広島県", lat: 34.39639, lon: 132.45944 },
-  { name: "山口県", lat: 34.18583, lon: 131.47139 },
-  { name: "徳島県", lat: 34.06583, lon: 134.55944 },
-  { name: "香川県", lat: 34.34028, lon: 134.04333 },
-  { name: "愛媛県", lat: 33.84167, lon: 132.76611 },
-  { name: "高知県", lat: 33.55972, lon: 133.53111 },
-  { name: "福岡県", lat: 33.60639, lon: 130.41806 },
-  { name: "佐賀県", lat: 33.24944, lon: 130.29889 },
-  { name: "長崎県", lat: 32.74472, lon: 129.87361 },
-  { name: "熊本県", lat: 32.78972, lon: 130.74167 },
-  { name: "大分県", lat: 33.23806, lon: 131.61250 },
-  { name: "宮崎県", lat: 31.91111, lon: 131.42389 },
-  { name: "鹿児島県", lat: 31.56028, lon: 130.55806 },
-  { name: "沖縄県", lat: 26.21250, lon: 127.68111 }
+  { name: "1(北海道)", lat: 43.06417, lon: 141.34694 },
+  { name: "2(青森県)", lat: 40.82444, lon: 140.74000 },
+  { name: "3(岩手県)", lat: 39.70361, lon: 141.15250 },
+  { name: "4(宮城県)", lat: 38.26889, lon: 140.87194 },
+  { name: "5(秋田県)", lat: 39.71861, lon: 140.10250 },
+  { name: "6(山形県)", lat: 38.24056, lon: 140.36333 },
+  { name: "7(福島県)", lat: 37.75000, lon: 140.46778 },
+  { name: "8(茨城県)", lat: 36.34139, lon: 140.44667 },
+  { name: "9(栃木県)", lat: 36.56583, lon: 139.88361 },
+  { name: "10(群馬県)", lat: 36.39111, lon: 139.06083 },
+  { name: "11(埼玉県)", lat: 35.85694, lon: 139.64889 },
+  { name: "12(千葉県)", lat: 35.60472, lon: 140.12333 },
+  { name: "13(東京都)", lat: 35.68944, lon: 139.69167 },
+  { name: "14(神奈川県)", lat: 35.44778, lon: 139.64250 },
+  { name: "15(新潟県)", lat: 37.90222, lon: 139.02361 },
+  { name: "16(富山県)", lat: 36.69528, lon: 137.21139 },
+  { name: "17(石川県)", lat: 36.59444, lon: 136.62556 },
+  { name: "18(福井県)", lat: 36.06528, lon: 136.22194 },
+  { name: "19(山梨県)", lat: 35.66389, lon: 138.56833 },
+  { name: "20(長野県)", lat: 36.65139, lon: 138.18111 },
+  { name: "21(岐阜県)", lat: 35.39111, lon: 136.72222 },
+  { name: "22(静岡県)", lat: 34.97694, lon: 138.38306 },
+  { name: "23(愛知県)", lat: 35.18028, lon: 136.90667 },
+  { name: "24(三重県)", lat: 34.73028, lon: 136.50861 },
+  { name: "25(滋賀県)", lat: 35.00444, lon: 135.86833 },
+  { name: "26(京都府)", lat: 35.02139, lon: 135.75556 },
+  { name: "27(大阪府)", lat: 34.68639, lon: 135.52000 },
+  { name: "28(兵庫県)", lat: 34.69139, lon: 135.18306 },
+  { name: "29(奈良県)", lat: 34.68528, lon: 135.83278 },
+  { name: "30(和歌山県)", lat: 34.22611, lon: 135.16750 },
+  { name: "31(鳥取県)", lat: 35.50361, lon: 134.23833 },
+  { name: "32(島根県)", lat: 35.47222, lon: 133.05056 },
+  { name: "33(岡山県)", lat: 34.66167, lon: 133.93500 },
+  { name: "34(広島県)", lat: 34.39639, lon: 132.45944 },
+  { name: "35(山口県)", lat: 34.18583, lon: 131.47139 },
+  { name: "36(徳島県)", lat: 34.06583, lon: 134.55944 },
+  { name: "37(香川県)", lat: 34.34028, lon: 134.04333 },
+  { name: "38(愛媛県)", lat: 33.84167, lon: 132.76611 },
+  { name: "39(高知県)", lat: 33.55972, lon: 133.53111 },
+  { name: "40(福岡県)", lat: 33.60639, lon: 130.41806 },
+  { name: "41(佐賀県)", lat: 33.24944, lon: 130.29889 },
+  { name: "42(長崎県)", lat: 32.74472, lon: 129.87361 },
+  { name: "43(熊本県)", lat: 32.78972, lon: 130.74167 },
+  { name: "44(大分県)", lat: 33.23806, lon: 131.61250 },
+  { name: "45(宮崎県)", lat: 31.91111, lon: 131.42389 },
+  { name: "46(鹿児島県)", lat: 31.56028, lon: 130.55806 },
+  { name: "47(沖縄県)", lat: 26.21250, lon: 127.68111 }
 ];
 
 const selectEl = document.getElementById('prefSelect');
@@ -156,35 +200,51 @@ let currentLon = 0;
 
 window.gsiCallback = function(data) {
   const addressText = document.getElementById('addressText');
+  const postalCode = document.getElementById('postalCode');
+  const kanaText = document.getElementById('kanaText');
   const mapLink = document.getElementById('mapLink');
-  
+  const gmapIframe = document.getElementById('gmapIframe');
+
   if (data && data.addressBack) {
     const addr = data.addressBack;
-    addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
-    
+    const fullAddress = `${addr.address1 || ''}${addr.address2 || ''}`;
+    addressText.textContent = fullAddress;
+
+    // 地図のセット
     mapLink.href = `https://www.google.com/maps?q=${currentLat},${currentLon}`;
-    mapLink.style.display = 'block';
+    gmapIframe.src = `https://maps.google.com/maps?q=${currentLat},${currentLon}&z=14&output=embed`;
+
+    // 郵便番号とフリガナを取得(HeartRails API)
+    fetchHeartRails(currentLat, currentLon);
   } else {
-    addressText.textContent = '住所を取得できませんでした（海の上または該当データなし）';
-    mapLink.style.display = 'none';
+    addressText.textContent = '住所を取得できませんでした';
+    postalCode.textContent = '〒---';
+    kanaText.textContent = '-';
   }
-  const oldScript = document.getElementById('gsi-script');
-  if (oldScript) oldScript.remove();
+};
+
+function fetchHeartRails(lat, lon) {
+  const script = document.createElement('script');
+  script.src = `https://express.heartrails.com/api/jsonp?method=getStations&x=${lon}&y=${lat}&callback=heartRailsCallback`;
+  document.body.appendChild(script);
+}
+
+window.heartRailsCallback = function(data) {
+  const postalCode = document.getElementById('postalCode');
+  const kanaText = document.getElementById('kanaText');
+  if (data && data.response && data.response.station && data.response.station.length > 0) {
+    const st = data.response.station[0];
+    postalCode.textContent = st.postal ? `〒${st.postal.slice(0,3)}-${st.postal.slice(3)}` : '〒---';
+    kanaText.textContent = st.line ? `${st.prefecture} ${st.line}` : '';
+  } else {
+    postalCode.textContent = '〒---';
+    kanaText.textContent = '';
+  }
 };
 
 function generateAddress() {
   const selectVal = selectEl.value;
-  const radius = 5;
-
-  const resultBox = document.getElementById('result');
-  const addressText = document.getElementById('addressText');
-  const coordsText = document.getElementById('coordsText');
-  const mapLink = document.getElementById('mapLink');
-
-  resultBox.style.display = 'block';
-  addressText.textContent = '住所を検索中...';
-  coordsText.textContent = '-';
-  mapLink.style.display = 'none';
+  document.getElementById('resultArea').style.display = 'block';
 
   let basePref;
   if (selectVal === "ALL") {
@@ -193,11 +253,11 @@ function generateAddress() {
     basePref = PREFECTURES[parseInt(selectVal)];
   }
 
-  const { lat, lon } = getRandomCoords(basePref.lat, basePref.lon, radius);
+  const { lat, lon } = getRandomCoords(basePref.lat, basePref.lon, 8);
   currentLat = lat;
   currentLon = lon;
 
-  coordsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+  document.getElementById('addressText').textContent = '検索中...';
 
   const oldScript = document.getElementById('gsi-script');
   if (oldScript) oldScript.remove();
@@ -205,9 +265,6 @@ function generateAddress() {
   const script = document.createElement('script');
   script.id = 'gsi-script';
   script.src = `https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}&callback=gsiCallback`;
-  script.onerror = function() {
-    addressText.textContent = '取得エラーが発生しました。通信環境を確認してください。';
-  };
   document.body.appendChild(script);
 }
 </script>
