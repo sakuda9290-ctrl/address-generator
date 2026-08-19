@@ -61,9 +61,8 @@
   <h1>実在住所ジェネレーター</h1>
 
   <div class="form-group">
-    <label for="prefSelect">基準の場所を選択</label>
+    <label for="prefSelect">地域を選択</label>
     <select id="prefSelect">
-      <option value="CURRENT">📍 現在地を中心にする</option>
       <option value="ALL">全国（ランダム）</option>
     </select>
   </div>
@@ -142,19 +141,6 @@ PREFECTURES.forEach((p, idx) => {
   selectEl.appendChild(opt);
 });
 
-function getCurrentLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error("端末が位置情報に対応していません。"));
-    }
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      err => reject(err),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  });
-}
-
 function getRandomCoords(lat, lon, radiusKm) {
   const r = radiusKm * Math.sqrt(Math.random());
   const theta = Math.random() * 2 * Math.PI;
@@ -176,7 +162,6 @@ window.gsiCallback = function(data) {
     const addr = data.addressBack;
     addressText.textContent = `${addr.address1 || ''}${addr.address2 || ''}`;
     
-    // Googleマップリンクの生成
     mapLink.href = `https://www.google.com/maps?q=${currentLat},${currentLon}`;
     mapLink.style.display = 'block';
   } else {
@@ -187,7 +172,7 @@ window.gsiCallback = function(data) {
   if (oldScript) oldScript.remove();
 };
 
-async function generateAddress() {
+function generateAddress() {
   const selectVal = selectEl.value;
   const radius = 5;
 
@@ -197,49 +182,33 @@ async function generateAddress() {
   const mapLink = document.getElementById('mapLink');
 
   resultBox.style.display = 'block';
-  addressText.textContent = '処理中...';
+  addressText.textContent = '住所を検索中...';
   coordsText.textContent = '-';
   mapLink.style.display = 'none';
 
-  let baseLat, baseLon;
-
-  try {
-    if (selectVal === "CURRENT") {
-      addressText.textContent = '位置情報を取得中...';
-      const pos = await getCurrentLocation();
-      baseLat = pos.lat;
-      baseLon = pos.lon;
-    } else if (selectVal === "ALL") {
-      const basePref = PREFECTURES[Math.floor(Math.random() * PREFECTURES.length)];
-      baseLat = basePref.lat;
-      baseLon = basePref.lon;
-    } else {
-      const basePref = PREFECTURES[parseInt(selectVal)];
-      baseLat = basePref.lat;
-      baseLon = basePref.lon;
-    }
-
-    const { lat, lon } = getRandomCoords(baseLat, baseLon, radius);
-    currentLat = lat;
-    currentLon = lon;
-
-    addressText.textContent = '住所を検索中...';
-    coordsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-
-    const oldScript = document.getElementById('gsi-script');
-    if (oldScript) oldScript.remove();
-
-    const script = document.createElement('script');
-    script.id = 'gsi-script';
-    script.src = `https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}&callback=gsiCallback`;
-    script.onerror = function() {
-      addressText.textContent = '取得エラーが発生しました。通信環境を確認してください。';
-    };
-    document.body.appendChild(script);
-
-  } catch (e) {
-    addressText.textContent = '位置情報の取得に失敗しました。位置情報の利用を許可してください。';
+  let basePref;
+  if (selectVal === "ALL") {
+    basePref = PREFECTURES[Math.floor(Math.random() * PREFECTURES.length)];
+  } else {
+    basePref = PREFECTURES[parseInt(selectVal)];
   }
+
+  const { lat, lon } = getRandomCoords(basePref.lat, basePref.lon, radius);
+  currentLat = lat;
+  currentLon = lon;
+
+  coordsText.textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+  const oldScript = document.getElementById('gsi-script');
+  if (oldScript) oldScript.remove();
+
+  const script = document.createElement('script');
+  script.id = 'gsi-script';
+  script.src = `https://msearch.gsi.go.jp/address-search-inversion/reverseGeocode?lon=${lon}&lat=${lat}&callback=gsiCallback`;
+  script.onerror = function() {
+    addressText.textContent = '取得エラーが発生しました。通信環境を確認してください。';
+  };
+  document.body.appendChild(script);
 }
 </script>
 </body>
